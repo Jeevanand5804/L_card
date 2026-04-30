@@ -1,16 +1,13 @@
 @import "tailwindcss";
 
-/* Custom reusable classes */
-@layer components {
-  .glass-card {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl;
-  }
+html,
+body,
+#root {
+  min-height: 100%;
+  background: linear-gradient(to bottom, #1a0033 0%, #000000 100%);
+}
 
-  .section-title {
-    @apply text-sm tracking-widest opacity-60;
-  }
-
-  .green-text {
-    @apply text-green-400;
-  }
+body {
+  margin: 0;
+  overflow-x: hidden;
 }

@@ -3,14 +3,17 @@ import Home from "../pages/Home";
 import Rewards from "../pages/Rewards";
 import Profile from "../pages/Profile";
 import History from "../pages/History";
+import MainLayout from "../Layouts/MainLayout";
 
 export default function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/rewards" element={<Rewards />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/history" element={<History />} />
+      <Route element={<MainLayout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/rewards" element={<Rewards />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/history" element={<History />} />
+      </Route>
     </Routes>
   );
 }

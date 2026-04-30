@@ -1,48 +1,87 @@
+import { useEffect, useState } from "react";
 import BalanceCard from "../components/BalanceCard";
 import RewardCard from "../components/RewardCard";
 import { NavLink } from "react-router-dom";
-import History from "../pages/History";
 import { CreditCard, Sparkles, Coffee, Sandwich, Cake } from "lucide-react";
+import { getHomeData } from "../services/homeService";
+
+const iconMap = {
+  CreditCard,
+  Sparkles,
+  Coffee,
+  Sandwich,
+  Cake,
+};
+
+const colorMap = {
+  yellow: "bg-yellow-400",
+  green: "bg-green-400",
+};
 
 export default function Home() {
+  const [homeData, setHomeData] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    getHomeData().then((data) => {
+      if (mounted) {
+        setHomeData(data);
+      }
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (!homeData) {
+    return <div className="py-10 text-white/70">Loading dashboard...</div>;
+  }
+
+  const { user, balance, nextReward, quickActions, recentActivity } = homeData;
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#1a0033] to-black text-white px-5 py-6 pb-28">
+    <div>
       {/* Header */}
       <p className="text-xs tracking-widest opacity-60">WELCOME BACK</p>
       <h1 className="text-3xl font-semibold mt-1">
-        Hello, <span className="text-green-400">Alex</span>
+        Hello, <span className="text-green-400">{user.name}</span>
       </h1>
 
       {/* Streak */}
       <div className="mt-4 inline-flex items-center gap-2 px-4 py-1 rounded-full bg-yellow-400/10 text-yellow-300 text-sm">
-        🔥 7-day streak · keep it going!
+        🔥 {user.streakDays}-day streak · keep it going!
       </div>
 
       {/* Cards */}
-      <BalanceCard />
-      <RewardCard />
+      <BalanceCard points={balance.points} targetPoints={balance.targetPoints} />
+      <RewardCard
+        pointsNeeded={nextReward.pointsNeeded}
+        rewardName={nextReward.rewardName}
+      />
 
       {/* Action Buttons */}
       <div className="flex gap-4 mt-6">
-        <button className="flex-1 flex items-center gap-3 px-4 py-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
-          <div className="bg-yellow-400 p-2 rounded-full">
-            <CreditCard size={18} className="text-black" />
-          </div>
-          <div className="text-left">
-            <p className="font-medium">L-Card</p>
-            <p className="text-xs opacity-60">Show & scan</p>
-          </div>
-        </button>
+        {quickActions.map((action) => {
+          const Icon = iconMap[action.icon] ?? Sparkles;
+          const colorClass = colorMap[action.color] ?? "bg-green-400";
 
-        <button className="flex-1 flex items-center gap-3 px-4 py-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
-          <div className="bg-green-400 p-2 rounded-full">
-            <Sparkles size={18} className="text-black" />
-          </div>
-          <div className="text-left">
-            <p className="font-medium">Rewards</p>
-            <p className="text-xs opacity-60">Browse all</p>
-          </div>
-        </button>
+          return (
+            <button
+              key={action.id}
+              className="flex-1 flex items-center gap-3 px-4 py-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10"
+            >
+              <div className={`${colorClass} p-2 rounded-full`}>
+                <Icon size={18} className="text-black" />
+              </div>
+              <div className="text-left">
+                <p className="font-medium">{action.title}</p>
+                <p className="text-xs opacity-60">{action.subtitle}</p>
+              </div>
+            </button>
+          );
+        })}
       </div>
 
       {/* Recent Activity */}
@@ -59,47 +98,30 @@ export default function Home() {
         </div>
 
         <div className="mt-4 space-y-4">
-          {/* Item 1 */}
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
-            <div className="flex items-center gap-3">
-              <div className="bg-purple-700/40 p-3 rounded-full">
-                <Coffee size={18} />
-              </div>
-              <div>
-                <p className="font-medium">Bought Latte</p>
-                <p className="text-xs opacity-60">Today · 09:14</p>
-              </div>
-            </div>
-            <p className="text-green-400 font-medium">+20</p>
-          </div>
+          {recentActivity.map((activity) => {
+            const Icon = iconMap[activity.icon] ?? Sparkles;
+            const positive = activity.points > 0;
 
-          {/* Item 2 */}
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
-            <div className="flex items-center gap-3">
-              <div className="bg-purple-700/40 p-3 rounded-full">
-                <Sandwich size={18} />
+            return (
+              <div
+                key={activity.id}
+                className="flex items-center justify-between p-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="bg-purple-700/40 p-3 rounded-full">
+                    <Icon size={18} />
+                  </div>
+                  <div>
+                    <p className="font-medium">{activity.title}</p>
+                    <p className="text-xs opacity-60">{activity.time}</p>
+                  </div>
+                </div>
+                <p className={`font-medium ${positive ? "text-green-400" : "text-yellow-400"}`}>
+                  {positive ? `+${activity.points}` : activity.points}
+                </p>
               </div>
-              <div>
-                <p className="font-medium">Bought Sandwich</p>
-                <p className="text-xs opacity-60">Today · 12:42</p>
-              </div>
-            </div>
-            <p className="text-green-400 font-medium">+30</p>
-          </div>
-
-          {/* Item 3 */}
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
-            <div className="flex items-center gap-3">
-              <div className="bg-purple-700/40 p-3 rounded-full">
-                <Cake size={18} />
-              </div>
-              <div>
-                <p className="font-medium">Redeemed Cake</p>
-                <p className="text-xs opacity-60">Yesterday · 16:20</p>
-              </div>
-            </div>
-            <p className="text-yellow-400 font-medium">-1800</p>
-          </div>
+            );
+          })}
         </div>
       </div>
     </div>
