@@ -9,7 +9,7 @@ export default function BottomNavbar() {
     bg-purple-900/60 backdrop-blur-xl rounded-3xl py-3 px-2 
     flex justify-around shadow-2xl border border-white/10">
 
-      <NavLink to="/" className={({ isActive }) =>
+      <NavLink to="/home" className={({ isActive }) =>
         `${base} ${isActive ? "text-black bg-green-400 px-3 py-2 rounded-xl scale-110" : "text-gray-400"}`
       }>
         <Home size={20} />
