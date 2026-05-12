@@ -1,56 +1,107 @@
-// Temporary service layer. Replace this with a real API call later.
+import axios from "axios";
+
+const iconMap = {
+  Coffee: "Coffee",
+  Gift: "Cake",
+  Sandwich: "Sandwich",
+  Sparkles: "Sparkles",
+};
+
 export async function getHomeData() {
-  return {
-    user: {
-      name: "Alex",
-      streakDays: 7,
-    },
-    balance: {
-      points: 1250,
-      targetPoints: 2000,
-    },
-    nextReward: {
-      pointsNeeded: 750,
-      rewardName: "Free Coffee",
-    },
-    quickActions: [
-      {
-        id: "card",
-        title: "L-Card",
-        subtitle: "Show and scan",
-        icon: "CreditCard",
-        color: "yellow",
+  try {
+    const token = localStorage.getItem("authToken");
+
+    if (!token) {
+      throw new Error("No auth token");
+    }
+
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+
+    const [profileRes, historyRes] = await Promise.all([
+      axios.get("http://localhost:5000/api/user/profile", { headers }),
+      axios.get("http://localhost:5000/api/history", { headers }),
+    ]);
+
+    const profile = profileRes.data;
+    const history = historyRes.data.slice(0, 3);
+
+    return {
+      user: {
+        name: profile.name,
+        streakDays: profile.streak,
       },
-      {
-        id: "rewards",
-        title: "Rewards",
-        subtitle: "Browse all",
-        icon: "Sparkles",
-        color: "green",
+      balance: {
+        points: profile.points,
+        targetPoints: 2000,
       },
-    ],
-    recentActivity: [
-      {
-        id: 1,
-        title: "Bought Latte",
-        time: "Today · 09:14",
-        points: 20,
-        icon: "Coffee",
+      nextReward: {
+        pointsNeeded: 2000 - profile.points,
+        rewardName: "Free Coffee",
       },
-      {
-        id: 2,
-        title: "Bought Sandwich",
-        time: "Today · 12:42",
-        points: 30,
-        icon: "Sandwich",
+      quickActions: [
+        {
+          id: "card",
+          title: "L-Card",
+          subtitle: "Show and scan",
+          icon: "CreditCard",
+          color: "yellow",
+        },
+        {
+          id: "rewards",
+          title: "Rewards",
+          subtitle: "Browse all",
+          icon: "Sparkles",
+          color: "green",
+        },
+      ],
+      recentActivity: history.map((item) => ({
+        id: item._id,
+        title: item.label,
+        time: new Date(item.createdAt).toLocaleString([], {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        points: item.points,
+        icon: iconMap[item.icon] || "Sparkles",
+      })),
+    };
+  } catch (error) {
+    console.error("Error fetching home data:", error);
+
+    return {
+      user: {
+        name: "User",
+        streakDays: 0,
       },
-      {
-        id: 3,
-        title: "Redeemed Cake",
-        time: "Yesterday · 16:20",
-        points: -1800,
-        icon: "Cake",
+      balance: {
+        points: 0,
+        targetPoints: 2000,
       },
-    ],
-  };
+      nextReward: {
+        pointsNeeded: 2000,
+        rewardName: "Free Coffee",
+      },
+      quickActions: [
+        {
+          id: "card",
+          title: "L-Card",
+          subtitle: "Show and scan",
+          icon: "CreditCard",
+          color: "yellow",
+        },
+        {
+          id: "rewards",
+          title: "Rewards",
+          subtitle: "Browse all",
+          icon: "Sparkles",
+          color: "green",
+        },
+      ],
+      recentActivity: [],
+    };
+  }
 }

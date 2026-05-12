@@ -1,12 +1,10 @@
 import express from "express";
-import User from "../models/User.js";
 import auth from "../middleware/authMiddleware.js";
+import { getProfile } from "../controllers/userController.js";
 
 const router = express.Router();
 
-router.get("/profile", auth, async (req, res) => {
-  const user = await User.findById(req.user.id).select("-password");
-  res.json(user);
-});
+router.get("/profile", auth, getProfile);
+router.get("/me", auth, getProfile);
 
 export default router;

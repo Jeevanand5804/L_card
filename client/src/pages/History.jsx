@@ -1,67 +1,85 @@
+import { useEffect, useMemo, useState } from "react";
+import axios from "axios";
 import { Coffee, Gift, Sandwich, Sparkles } from "lucide-react";
 
-const timelineSections = [
+const iconMap = {
+  Coffee,
+  Gift,
+  Sandwich,
+  Sparkles,
+};
+
+const fallbackSections = [
   {
-    id: "today",
-    title: "TODAY",
-    items: [
-      {
-        id: 1,
-        label: "Bought Latte",
-        time: "Today · 09:14",
-        points: 20,
-        Icon: Coffee,
-        tone: "earn",
-      },
-      {
-        id: 2,
-        label: "Bought Sandwich",
-        time: "Today · 12:42",
-        points: 30,
-        Icon: Sandwich,
-        tone: "earn",
-      },
-    ],
-  },
-  {
-    id: "yesterday",
-    title: "YESTERDAY",
-    items: [
-      {
-        id: 3,
-        label: "Redeemed Cake",
-        time: "Yesterday · 16:20",
-        points: -1800,
-        Icon: Gift,
-        tone: "redeem",
-      },
-      {
-        id: 4,
-        label: "Bought Cappuccino",
-        time: "Yesterday · 08:30",
-        points: 25,
-        Icon: Coffee,
-        tone: "earn",
-      },
-    ],
-  },
-  {
-    id: "two-days-ago",
-    title: "2 DAYS AGO",
-    items: [
-      {
-        id: 5,
-        label: "Daily streak bonus",
-        time: "2 days ago",
-        points: 50,
-        Icon: Sparkles,
-        tone: "earn",
-      },
-    ],
+    id: "empty",
+    title: "NO HISTORY",
+    items: [],
   },
 ];
 
 export default function History() {
+  const [history, setHistory] = useState([]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+
+    if (!token) {
+      return;
+    }
+
+    axios
+      .get("http://localhost:5000/api/history", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => setHistory(response.data))
+      .catch((error) => {
+        console.error("Error fetching history:", error);
+      });
+  }, []);
+
+  const timelineSections = useMemo(() => {
+    if (!history.length) {
+      return fallbackSections;
+    }
+
+    const grouped = history.reduce((acc, item) => {
+      const date = new Date(item.createdAt);
+      const key = date.toDateString();
+
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+
+      acc[key].push({
+        id: item._id,
+        label: item.label,
+        time: date.toLocaleString([], {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        points: item.points,
+        Icon: iconMap[item.icon] ?? Sparkles,
+        tone: item.type,
+      });
+
+      return acc;
+    }, {});
+
+    return Object.entries(grouped).map(([dateLabel, items]) => ({
+      id: dateLabel,
+      title: new Date(dateLabel).toLocaleDateString([], {
+        weekday: "long",
+        month: "short",
+        day: "numeric",
+      }).toUpperCase(),
+      items,
+    }));
+  }, [history]);
+
   const totals = timelineSections
     .flatMap((section) => section.items)
     .reduce(

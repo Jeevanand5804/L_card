@@ -1,7 +1,10 @@
 import jwt from "jsonwebtoken";
 
 export default function (req, res, next) {
-  const token = req.header("Authorization");
+  const authHeader = req.header("Authorization");
+  const token = authHeader?.startsWith("Bearer ")
+    ? authHeader.slice(7)
+    : authHeader;
 
   if (!token) return res.status(401).json({ msg: "No token" });
 

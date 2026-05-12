@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import {
   Bell,
   CakeSlice,
@@ -10,7 +11,8 @@ import {
   LogOut,
   Settings,
   Shield,
-  User
+  User,
+  RefreshCw
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -68,6 +70,58 @@ const achievements = [
 export default function Profile() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [profile, setProfile] = useState(() => {
+    const storedUser = localStorage.getItem("user");
+
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
+
+  const fetchProfile = async () => {
+    const token = localStorage.getItem("authToken");
+
+    if (!token) {
+      return;
+    }
+
+    setIsRefreshing(true);
+
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/api/user/profile",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setProfile(response.data);
+      localStorage.setItem("user", JSON.stringify(response.data));
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const accountStats = [
+    {
+      id: "points",
+      label: "Total Points",
+      value: profile?.points?.toLocaleString?.() ?? "1,250",
+    },
+    {
+      id: "streak",
+      label: "Current Streak",
+      value: profile?.streak ? `${profile.streak} days` : "7 days",
+    },
+    {
+      id: "level",
+      label: "Member Tier",
+      value: profile?.tier ?? "Gold",
+    },
+  ];
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
@@ -75,6 +129,10 @@ export default function Profile() {
     sessionStorage.clear();
     navigate("/");
   };
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
   return (
     <section className="relative mx-auto w-full max-w-5xl pb-36 md:pb-10 px-4">
@@ -117,8 +175,12 @@ export default function Profile() {
             <User size={30} />
           </div>
           <div>
-            <h2 className="text-2xl font-semibold">Alex Morgan</h2>
-            <p className="text-sm text-white/60">alex@example.com</p>
+            <h2 className="text-2xl font-semibold">
+              {profile.name}
+            </h2>
+            <p className="text-sm text-white/60">
+              {profile.email}
+            </p>
           </div>
         </div>
 
