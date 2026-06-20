@@ -16,11 +16,11 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const accountStats = [
-  { id: "points", label: "Total Points", value: "1,250" },
-  { id: "streak", label: "Current Streak", value: "7 days" },
-  { id: "level", label: "Member Tier", value: "Gold" },
-];
+// const accountStats = [
+//   { id: "points", label: "Total Points", value: "1,250" },
+//   { id: "streak", label: "Current Streak", value: "7 days" },
+//   { id: "level", label: "Member Tier", value: "Gold" },
+// ];
 
 const achievements = [
   {
@@ -71,11 +71,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [profile, setProfile] = useState(() => {
-    const storedUser = localStorage.getItem("user");
-
-    return storedUser ? JSON.parse(storedUser) : null;
-  });
+  const [profile, setProfile] = useState(false);
 
   const fetchProfile = async () => {
     const token = localStorage.getItem("authToken");
@@ -109,12 +105,12 @@ export default function Profile() {
     {
       id: "points",
       label: "Total Points",
-      value: profile?.points?.toLocaleString?.() ?? "1,250",
+      value: profile?.points?.toLocaleString?.() ?? "0",
     },
     {
       id: "streak",
       label: "Current Streak",
-      value: profile?.streak ? `${profile.streak} days` : "7 days",
+      value: profile?.streak ? `${profile.streak} days` : "0 days",
     },
     {
       id: "level",

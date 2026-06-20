@@ -9,8 +9,9 @@ import MainLayout from "../Layouts/MainLayout";
 export default function AppRoutes() {
   return (
     <Routes>
+      <Route path="/" element={<Auth />} />
+
       <Route element={<MainLayout />}>
-        <Route path="/" element={<Auth />} />
         <Route path="/home" element={<Home />} />
         <Route path="/rewards" element={<Rewards />} />
         <Route path="/profile" element={<Profile />} />

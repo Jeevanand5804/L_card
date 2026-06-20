@@ -1,42 +1,45 @@
+import { useEffect, useState } from "react";
 import { Lock, Sparkles } from "lucide-react";
 import coffeeImage from "../assets/images/Coffee.jpg";
 import sandwichImage from "../assets/images/Artisan Sandwich.jpg";
 import cakeImage from "../assets/images/Chocolate Cake.jpeg";
 import tumblerImage from "../assets/images/Tumbler.webp";
+import { getRewardsData } from "../services/rewardService";
 
-const rewards = [
-  {
-    id: 1,
-    title: "Free Coffee",
-    subtitle: "Any size, any blend",
-    points: 2000,
-    image: coffeeImage,
-  },
-  {
-    id: 2,
-    title: "Artisan Sandwich",
-    subtitle: "Fresh and made to order",
-    points: 2500,
-    image: sandwichImage,
-  },
-  {
-    id: 3,
-    title: "Chocolate Cake",
-    subtitle: "Single slice",
-    points: 1800,
-    image: cakeImage,
-  },
-  {
-    id: 4,
-    title: "L-Card Tumbler",
-    subtitle: "Limited edition",
-    points: 4000,
-    image: tumblerImage,
-  },
-];
+const imageMap = {
+  "Free Coffee": coffeeImage,
+  "Artisan Sandwich": sandwichImage,
+  "Chocolate Cake": cakeImage,
+  "L-Card Tumbler": tumblerImage,
+};
 
 export default function Rewards() {
-  const userPoints = 1250; // 🔥 Replace with backend data later
+  const [userPoints, setUserPoints] = useState(0);
+  const [rewards, setRewards] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    getRewardsData()
+      .then((data) => {
+        if (!mounted) {
+          return;
+        }
+
+        setUserPoints(data.userPoints ?? 0);
+        setRewards(data.rewards ?? []);
+      })
+      .catch(() => {
+        if (mounted) {
+          setUserPoints(0);
+          setRewards([]);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <section className="max-w-6xl mx-auto px-4 pt-2 pb-8">
@@ -59,7 +62,8 @@ export default function Rewards() {
       {/* Responsive Grid */}
       <div className="mt-7 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         {rewards.map((reward) => {
-          const isUnlocked = userPoints >= reward.points;
+          const isUnlocked = reward.isUnlocked ?? userPoints >= reward.points;
+          const rewardImage = imageMap[reward.title];
 
           return (
             <article
@@ -71,7 +75,7 @@ export default function Rewards() {
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-fuchsia-700/35" />
 
                 <img
-                  src={reward.image}
+                  src={rewardImage}
                   alt={reward.title}
                   className="h-40 w-full object-cover blur-[1.6px]"
                   loading="lazy"

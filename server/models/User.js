@@ -9,11 +9,11 @@ const userSchema = new mongoose.Schema({
   password: String,
   points: {
     type: Number,
-    default: 1250,
+    default: 0,
   },
   streak: {
     type: Number,
-    default: 7,
+    default: 0,
   },
   tier: {
     type: String,
